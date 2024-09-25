@@ -72,15 +72,25 @@ x0, x1 = np.meshgrid(
     np.linspace(X1[:, 0].min() - 1, X1[:, 0].max() + 1, 500),
     np.linspace(X1[:, 1].min() - 1, X1[:, 1].max() + 1, 500)
 )
+#np.meshgrid() creates two 2D arrays (x0, x1), where x0 contains all the x-values (feature 1: petal length),
+#and x1 contains all the y-values (feature 2: petal width).
+#The combination of x0 and x1 will generate a grid of 500x500 = 250,000 points across the feature space.
 
 X_new = np.c_[x0.ravel(), x1.ravel()]
 y_proba = log_reg.predict_proba(X_new)[:, 1].reshape(x0.shape)
+#x0.ravel() and x1.ravel(): We flatten the mesh grid arrays (which are 2D) into 1D arrays. 
+#This allows us to create a 2D array of shape (250,000, 2), where each row is a point on the grid.
+#np.c_[...]: This concatenates the two flattened arrays (x0 and x1) column-wise 
+#to create the full grid of feature combinations.
+#We pass this grid of feature combinations to the logistic regression model to get the predicted probabilities of class 1 (Iris virginica).
+#The probabilities for class 1 (Iris virginica) are reshaped back into the 2D shape of the grid (x0.shape) so we can plot it.
 
-
-# Step 5: Plot the contours for probability levels
+# Step 5: Plot the contours for probability levels [0.15, 0.30, 0.45, 0.5, 0.60, 0.75, 0.90]
 plt.contour(x0, x1, y_proba, levels=[0.15, 0.30, 0.45, 0.5, 0.60, 0.75, 0.90], cmap="RdYlBu", alpha=0.8)
 plt.contour(x0, x1, y_proba, levels=[0.5], colors="black", linewidths=2, linestyles="dashed")  # Decision boundary
-
+#plt.contour(): This function plots contour lines at specified levels.
+#In this case, levels=[0.5] specifies the decision boundary 
+#(the line where the probability of being Iris virginica is exactly 0.5).
 
 # Step 6: Scatter plot of the samples
 plt.scatter(X1[y1 == 0, 0], X1[y1 == 0, 1], color="blue", marker="s", label="Not Iris virginica")
@@ -95,3 +105,4 @@ plt.legend(loc="best")
 # Show the plot
 plt.title("Decision Boundaries and Probability Contours for Iris virginica")
 plt.show()
+
