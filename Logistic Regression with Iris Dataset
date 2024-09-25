@@ -1,0 +1,97 @@
+from sklearn.datasets import load_iris
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+iris = load_iris(as_frame = True)
+x=iris.data.head()
+print(x) 
+
+print(iris.target_names)
+# a sample has 4 features, which determines whether it is setosa(0), versicolor(1) or virginica(2)
+print(iris.target) #array of 150 elements, containing integers (0,1,2), corresponding to species of flower
+print(iris.target_names[iris.target]) 
+#each integer in iris.target replaced wih correspondimg species name in iris.target_names
+
+X = iris.data[["petal width (cm)"]].values #selects the petal width column and turns it into a dataframe(2-D form)
+# .values converts the dataframe into a 2-D numpy array with 150 rows and 1 column
+
+y = iris.target_names[iris.target] == 'virginica' 
+print(y)
+#returns a boolean array, where each element is True if the sample is of the species "virginica", and False otherwise.
+X_train, X_test, y_train, y_test = train_test_split(X, y,random_state=42) #splitting dataset
+log_reg = LogisticRegression(random_state=42) 
+log_reg.fit(X_train, y_train) #applying logistic regression to data
+
+X_new = np.linspace(0, 3, 1000).reshape(-1, 1) 
+#returns a 2-D array of 1000 rows and 1 column of evenly spaced numbers from 0 to 3
+
+y_proba = log_reg.predict_proba(X_new) #predicts probability of a sample of a particular petal width being virginica
+#y_proba[:,0]): The probability of the sample belonging to class 0 (the negative class).
+#The second value (y_proba[:, 1]): The probability of the sample belonging to class 1 (the positive class).
+print(y_proba)
+
+decision_boundary = X_new[y_proba[:, 1] >= 0.5][0, 0]
+#Finds the smallest value of X_new where the predicted probability of class 1 is greater than or equal to 0.5. 
+#This is the decision boundary, the point where the model starts predicting class 1 over class 0.
+data={'petal_width':iris.data[["petal width (cm)"]].values.reshape(-1),'is_virginica':y}
+df= pd.DataFrame(data)
+
+plt.plot(X_new, y_proba[:, 0], "b--", linewidth=2,label="Not Iris virginica proba")
+plt.plot(X_new, y_proba[:, 1], "g-", linewidth=2, label="Iris virginica proba")
+plt.plot([decision_boundary, decision_boundary], [0, 1], "k:",linewidth=2,label="Decision boundary")
+#Draws a vertical dotted black line at the decision boundary 
+#(the point where the predicted probability of class 1 is 0.5).
+plt.scatter(df['petal_width'], df['is_virginica'], c=df['is_virginica'], cmap='bwr', edgecolor='k', s=100)
+#scatter plots of petals of various petal widths being virginica or not virginica
+plt.xlabel('Length', fontsize=14)
+plt.ylabel('Probability of being Virginica', fontsize=14)
+plt.show()
+
+ans=np.array(log_reg.predict([[1.7], [1.5]])) #input is petal widths, true of virginica, false if not
+print(ans)
+
+#For predicting using multiple features with logistical regression
+# Step 1: Load the Iris dataset
+X1 = iris.data[["petal length (cm)","petal width (cm)"]].values  # Petal length and petal width
+y1 = (iris.target == 2).astype(int)  # 1 if Iris virginica, else 0
+
+
+# Step 2: Train a logistic regression model
+X_train, X_test, y_train, y_test = train_test_split(X1, y1,random_state=42)
+log_reg = LogisticRegression()
+log_reg.fit(X_train, y_train)
+
+#Step 3: Check Accuracy
+accuracy = log_reg.score(X_test, y_test)
+print(f"Test set accuracy: {accuracy * 100:.2f}%")
+
+# Step 4: Create a mesh grid to plot decision boundary
+x0, x1 = np.meshgrid(
+    np.linspace(X1[:, 0].min() - 1, X1[:, 0].max() + 1, 500),
+    np.linspace(X1[:, 1].min() - 1, X1[:, 1].max() + 1, 500)
+)
+
+X_new = np.c_[x0.ravel(), x1.ravel()]
+y_proba = log_reg.predict_proba(X_new)[:, 1].reshape(x0.shape)
+
+
+# Step 5: Plot the contours for probability levels
+plt.contour(x0, x1, y_proba, levels=[0.15, 0.30, 0.45, 0.5, 0.60, 0.75, 0.90], cmap="RdYlBu", alpha=0.8)
+plt.contour(x0, x1, y_proba, levels=[0.5], colors="black", linewidths=2, linestyles="dashed")  # Decision boundary
+
+
+# Step 6: Scatter plot of the samples
+plt.scatter(X1[y1 == 0, 0], X1[y1 == 0, 1], color="blue", marker="s", label="Not Iris virginica")
+plt.scatter(X1[y1 == 1, 0], X1[y1 == 1, 1], color="green", marker="^", label="Iris virginica")
+
+# Step 7: Label the axes
+plt.xlabel("Petal length ")
+plt.ylabel("Petal width")
+plt.legend(loc="best")
+
+
+# Show the plot
+plt.title("Decision Boundaries and Probability Contours for Iris virginica")
+plt.show()
